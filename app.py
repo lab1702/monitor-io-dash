@@ -1,0 +1,366 @@
+from shiny import App, ui, render, reactive
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.dates import DateFormatter, HourLocator, DayLocator
+from datetime import datetime, timedelta
+import logging
+import asyncio
+import warnings
+from typing import Optional, List, Dict, Any
+
+from data_fetcher import MonitorIODataFetcher
+from config import config
+from constants import *
+from exceptions import DataProcessingError, ValidationError
+from ui_components import create_main_layout
+
+logging.basicConfig(level=getattr(logging, config.log_level))
+logger = logging.getLogger(__name__)
+
+# Suppress specific matplotlib tight_layout warning
+warnings.filterwarnings('ignore', message='This figure includes Axes that are not compatible with tight_layout')
+
+# Create UI using modular components
+app_ui = create_main_layout()
+
+def _plot_metric(ax, filtered_data: pd.DataFrame, targets: List[str], colors: List[str], 
+                column: str, ylabel: str, title: str) -> None:
+    """Helper function to plot a specific metric for all targets"""
+    for i, target in enumerate(targets):
+        target_data = filtered_data[filtered_data['target'] == target]
+        if not target_data.empty and target_data[column].notna().any():
+            clean_data = target_data.dropna(subset=[column])
+            if not clean_data.empty:
+                ax.plot(clean_data['datetime'], clean_data[column],
+                       label=str(target), color=colors[i % len(colors)],
+                       linewidth=CHART_LINE_WIDTH, alpha=CHART_ALPHA)
+    
+    ax.set_ylabel(ylabel, fontweight='bold', fontsize=12)
+    ax.set_title(title, fontweight='bold', fontsize=16, pad=20)
+
+def server(input, output, session):
+    # Initialize data fetcher
+    fetcher = MonitorIODataFetcher()
+    
+    # Reactive values to store the data
+    ping_data = reactive.Value(pd.DataFrame())
+    dns_failure_data = reactive.Value(pd.DataFrame())
+    target_choices = reactive.Value([])
+    
+    # Load initial data
+    @reactive.Effect
+    async def load_initial_data():
+        with ui.Progress(min=0, max=100) as p:
+            try:
+                p.set(0, message="Connecting to monitor-io device...", detail="")
+                await asyncio.sleep(0.1)
+                
+                # Progress callback function
+                async def update_progress(progress, message):
+                    p.set(progress, message=message, detail="")
+                    await asyncio.sleep(0.05)  # Allow UI to update
+                
+                # Use async method with progress callback
+                data = await fetcher.get_ping_data_async(progress_callback=update_progress)
+                
+                p.set(90, message="Loading DNS failure data...", detail="")
+                dns_data = await fetcher.get_dns_failure_data_async()
+                
+                p.set(98, message="Finalizing...", detail="Updating interface")
+                ping_data.set(data)
+                dns_failure_data.set(dns_data)
+                
+                # Update target choices
+                if not data.empty and 'target' in data.columns:
+                    unique_targets = data['target'].dropna().unique().tolist()
+                    target_choices.set(unique_targets)
+                
+                p.set(100, message="Complete!", detail=f"Loaded {len(data)} records")
+                await asyncio.sleep(0.5)  # Brief pause to show completion
+                
+                logger.info(f"Loaded initial data: {len(data)} rows")
+            except Exception as e:
+                p.set(100, message="Error loading data", detail=str(e))
+                logger.error(f"Error loading initial data: {e}")
+                ping_data.set(pd.DataFrame())
+                target_choices.set([])
+                await asyncio.sleep(1)
+    
+    
+    # Update time range slider based on available data
+    @reactive.Effect
+    def update_time_range_ui():
+        data = ping_data.get()
+        if not data.empty and 'datetime' in data.columns:
+            # Calculate the range of available data
+            min_date = data['datetime'].min()
+            max_date = data['datetime'].max()
+            
+            if pd.notna(min_date) and pd.notna(max_date):
+                # Calculate total days of data available
+                total_days = (max_date - min_date).days + 1
+                
+                # Update slider to allow full range, but cap at reasonable maximum
+                max_range = min(total_days, MAX_TIME_RANGE_DAYS)
+                current_value = min(input.time_range(), max_range)
+                
+                ui.update_slider("time_range", value=current_value, min=DEFAULT_SLIDER_MIN, max=max_range)
+                logger.info(f"Updated time range slider: {total_days} days available, max set to {max_range}")
+        else:
+            # Default range if no data
+            ui.update_slider("time_range", value=DEFAULT_TIME_RANGE_DAYS, min=DEFAULT_SLIDER_MIN, max=DEFAULT_SLIDER_MAX)
+    
+    @output
+    @render.plot
+    def metric_plot():
+        data = ping_data.get()
+        dns_data = dns_failure_data.get()
+        
+        # Set up matplotlib with subplots - performance chart on top, DNS failures on bottom
+        plt.style.use('default')
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True, 
+                                       gridspec_kw={'height_ratios': [3, 1], 'hspace': 0.1},
+                                       constrained_layout=False)
+        fig.patch.set_facecolor('none')
+        ax1.set_facecolor('none')
+        ax2.set_facecolor('none')
+        
+        # Configure colors for dark mode compatibility
+        text_color = '#f1f5f9'  # Light text for dark backgrounds
+        muted_color = '#94a3b8'  # Muted light text
+        border_color = '#334155'  # Dark border color
+        
+        # Get time range for consistent filtering
+        try:
+            time_range_days = input.time_range()
+            if not isinstance(time_range_days, (int, float)) or time_range_days <= 0:
+                time_range_days = 1
+            cutoff_time = datetime.now() - timedelta(days=time_range_days)
+            current_time = datetime.now()
+        except:
+            time_range_days = 1
+            cutoff_time = datetime.now() - timedelta(days=1)
+            current_time = datetime.now()
+        
+        # === TOP SUBPLOT: Performance Metrics ===
+        if data.empty or 'datetime' not in data.columns:
+            ax1.text(0.5, 0.5, 'No performance data available\nClick "🔄 Refresh Data" to load from monitor-io device',
+                    ha='center', va='center', transform=ax1.transAxes, fontsize=12, color=muted_color)
+            ax1.set_title("Network Performance Metrics", fontweight='bold', fontsize=14, color=text_color)
+        else:
+            # Filter performance data by time range
+            try:
+                if not pd.api.types.is_datetime64_any_dtype(data['datetime']):
+                    data['datetime'] = pd.to_datetime(data['datetime'])
+                filtered_data = data[data['datetime'] >= cutoff_time].copy()
+            except:
+                filtered_data = data.copy()
+            
+            if filtered_data.empty:
+                ax1.text(0.5, 0.5, 'No performance data in selected time range',
+                        ha='center', va='center', transform=ax1.transAxes, fontsize=12, color=muted_color)
+                ax1.set_title("Network Performance Metrics", fontweight='bold', fontsize=14, color=text_color)
+            else:
+                # Use color palette from constants
+                colors = CHART_COLORS
+                targets = filtered_data['target'].unique()
+                metric_type = input.metric_type()
+                
+                if metric_type == METRIC_TYPES['AVERAGE_PING']:
+                    _plot_metric(ax1, filtered_data, targets, colors, PING_COLUMNS['delay_avg'], 
+                                'Average Ping Time (ms)', 'Network Performance Metrics')
+                elif metric_type == METRIC_TYPES['MIN_PING']:
+                    _plot_metric(ax1, filtered_data, targets, colors, PING_COLUMNS['delay_min'], 
+                                'Min Ping Time (ms)', 'Network Performance Metrics')
+                elif metric_type == METRIC_TYPES['MAX_PING']:
+                    _plot_metric(ax1, filtered_data, targets, colors, PING_COLUMNS['delay_max'], 
+                                'Max Ping Time (ms)', 'Network Performance Metrics')
+                elif metric_type == METRIC_TYPES['PACKET_LOSS']:
+                    _plot_metric(ax1, filtered_data, targets, colors, PING_COLUMNS['loss_pct'], 
+                                'Packet Loss (%)', 'Network Performance Metrics')
+                
+                # Style the axes for dark mode
+                ax1.tick_params(colors=text_color, labelsize=10)
+                ax1.yaxis.label.set_color(text_color)
+                ax1.title.set_color(text_color)
+                
+                # Add legend if we have data
+                if len(targets) > 0:
+                    legend1 = ax1.legend(loc='upper left', fontsize=9)
+                    legend1.get_frame().set_facecolor('none')
+                    legend1.get_frame().set_alpha(0)
+                    # Make legend text light colored
+                    for text in legend1.get_texts():
+                        text.set_color(text_color)
+        
+        # === BOTTOM SUBPLOT: DNS Failures ===
+        if dns_data.empty:
+            ax2.text(0.5, 0.5, 'No DNS failures detected',
+                    ha='center', va='center', transform=ax2.transAxes, fontsize=10, color=muted_color)
+            ax2.set_ylim(-0.5, 0.5)  # Minimal range when no data
+            ax2.set_yticks([])  # No tick marks when no data
+            ax2.tick_params(colors=text_color, labelsize=10)
+        else:
+            # Filter DNS failure data by time range
+            try:
+                if 'datetime' in dns_data.columns:
+                    if not pd.api.types.is_datetime64_any_dtype(dns_data['datetime']):
+                        dns_data['datetime'] = pd.to_datetime(dns_data['datetime'])
+                    filtered_dns_data = dns_data[dns_data['datetime'] >= cutoff_time].copy()
+                else:
+                    filtered_dns_data = dns_data.copy()
+            except:
+                filtered_dns_data = dns_data.copy()
+            
+            if filtered_dns_data.empty:
+                ax2.text(0.5, 0.5, 'No DNS failures in selected time range',
+                        ha='center', va='center', transform=ax2.transAxes, fontsize=10, color=muted_color)
+                ax2.set_ylim(-0.5, 0.5)  # Minimal range when no data
+                ax2.set_yticks([])  # No tick marks when no data
+                ax2.tick_params(colors=text_color, labelsize=10)
+            else:
+                # Plot DNS failures as vertical lines
+                target_numbers = filtered_dns_data['target_number'].unique()
+                colors = CHART_COLORS
+                
+                # Set up Y-axis range for vertical lines
+                ax2.set_ylim(-0.5, 0.5)
+                ax2.set_yticks([])  # No target number ticks needed for vertical lines
+                
+                for i, target_num in enumerate(sorted(target_numbers)):
+                    target_data = filtered_dns_data[filtered_dns_data['target_number'] == target_num]
+                    if not target_data.empty:
+                        for _, failure in target_data.iterrows():
+                            ax2.axvline(x=failure['datetime'], 
+                                       color=colors[i % len(colors)], alpha=0.8, linewidth=2,
+                                       label=f'Target {target_num}' if _ == target_data.index[0] else "")
+                
+                # Add legend if there are multiple targets
+                if len(target_numbers) > 1:
+                    legend2 = ax2.legend(loc='upper right', fontsize=8)
+                    legend2.get_frame().set_facecolor('none')
+                    legend2.get_frame().set_alpha(0)
+                    # Make legend text light colored
+                    for text in legend2.get_texts():
+                        text.set_color(text_color)
+        
+        ax2.set_ylabel('DNS', fontweight='bold', fontsize=10, color=text_color)
+        
+        # Style ax2 for dark mode
+        ax2.tick_params(colors=text_color, labelsize=10)
+        ax2.yaxis.label.set_color(text_color)
+        
+        # === SHARED X-AXIS FORMATTING ===
+        # Set explicit X-axis range for both subplots
+        ax1.set_xlim(cutoff_time, current_time)
+        ax2.set_xlim(cutoff_time, current_time)
+        
+        # Format time axis (only on bottom subplot since sharex=True)
+        interval_key = 1  # default
+        for key in sorted(TIME_RANGE_INTERVALS.keys()):
+            if time_range_days <= key:
+                interval_key = key
+                break
+        else:
+            interval_key = max(TIME_RANGE_INTERVALS.keys())
+        
+        interval_config = TIME_RANGE_INTERVALS[interval_key]
+        ax2.xaxis.set_major_locator(interval_config['locator'])
+        ax2.xaxis.set_major_formatter(interval_config['formatter'])
+        
+        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45, ha='right', color=text_color)
+        ax2.set_xlabel('Time', fontweight='bold', fontsize=12, color=text_color)
+        ax2.xaxis.label.set_color(text_color)
+        
+        plt.subplots_adjust(bottom=0.15, hspace=0.1)
+        fig.set_tight_layout(False)
+        logger.info(f"Generated combined chart: performance data and DNS failures")
+        return fig
+    
+    @output
+    @render.table
+    def recent_data_table():
+        data = ping_data.get()
+        if data.empty:
+            return pd.DataFrame({"Status": ["No data loaded"]})
+        
+        # Get recent data for all targets
+        recent_data = data
+        
+        # Show last N records
+        recent = recent_data.tail(RECENT_DATA_ROWS).copy()
+        
+        # Select display columns
+        display_cols = ['datetime', 'target', 'delay_avg', 'delay_min', 'delay_max', 'loss_pct']
+        display_cols = [col for col in display_cols if col in recent.columns]
+        
+        if display_cols:
+            recent_display = recent[display_cols].copy()
+            # Round numeric columns
+            for col in ['delay_avg', 'delay_min', 'delay_max', 'loss_pct']:
+                if col in recent_display.columns:
+                    recent_display[col] = recent_display[col].round(2)
+            return recent_display
+        else:
+            return recent
+    
+    @output
+    @render.table
+    def stats_table():
+        data = ping_data.get()
+        if data.empty:
+            return pd.DataFrame({"Metric": ["No data"], "Value": ["N/A"]})
+        
+        # Get data for all targets
+        filtered_data = data
+        
+        if filtered_data.empty:
+            return pd.DataFrame({"Metric": ["No data available"], "Value": ["N/A"]})
+        
+        stats = []
+        
+        # Statistics by target
+        for target in filtered_data['target'].unique():
+            target_data = filtered_data[filtered_data['target'] == target]
+            
+            if not target_data.empty:
+                stats.extend([
+                    {"Metric": f"{target}", "Value": "---"},
+                    {"Metric": f"  Avg Ping", "Value": f"{target_data['delay_avg'].mean():.1f} ms"},
+                    {"Metric": f"  Max Ping", "Value": f"{target_data['delay_max'].max():.1f} ms"},
+                    {"Metric": f"  Avg Loss", "Value": f"{target_data['loss_pct'].mean():.1f}%"},
+                    {"Metric": f"  Records", "Value": str(len(target_data))}
+                ])
+        
+        stats.append({"Metric": "Total Records", "Value": str(len(filtered_data))})
+        
+        return pd.DataFrame(stats)
+    
+    @output
+    @render.ui
+    def loading_status():
+        # Progress bars are now handled by ui.Progress context manager
+        return ui.div()  # Empty - progress is shown via ui.Progress
+    
+    @output
+    @render.text
+    def data_status():
+        data = ping_data.get()
+        targets = target_choices.get()
+        
+        if data.empty:
+            return "Status: No data loaded"
+        
+        total_targets = len(targets)
+        
+        return f"Status: {len(data)} records loaded\nTargets: {total_targets} available\nTime range: {input.time_range()} days"
+
+app = App(app_ui, server)
+
+if __name__ == "__main__":
+    if config.use_https and config.ssl_cert_path and config.ssl_key_path:
+        app.run(host=config.app_host, port=config.app_port, 
+                ssl_certfile=config.ssl_cert_path, ssl_keyfile=config.ssl_key_path)
+    else:
+        app.run(host=config.app_host, port=config.app_port)

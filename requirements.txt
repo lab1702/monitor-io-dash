@@ -1,0 +1,10 @@
+shiny
+pandas
+matplotlib
+numpy
+psutil
+Jinja2
+requests
+beautifulsoup4
+python-dotenv
+aiohttp
