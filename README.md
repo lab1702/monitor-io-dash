@@ -5,8 +5,10 @@ A professional Python/Shiny web dashboard for monitoring network performance dat
 ## Features
 
 - 🌐 **Real-time Network Monitoring**: Visualize ping times and packet loss across multiple targets
-- 📊 **Multiple Metrics**: Average/Min/Max ping times and packet loss percentages
-- ⏰ **Flexible Time Ranges**: Dropdown selection for Last 24h, 48h, 7 days, or All Data
+- 📊 **Comprehensive Metrics**: Average/Min/Max ping times and packet loss percentages
+- ⚠️ **Smart Alerts**: Visual highlighting of targets with packet loss using warning indicators
+- 📋 **Performance Statistics Table**: Clean tabular view with targets as rows and metrics as columns
+- ⏰ **Flexible Time Ranges**: Dropdown selection for Last 24h, 48h, 7 days, or All Data with synchronized filtering
 - 🎨 **VSCode Theme**: Authentic VSCode light/dark theme with seamless switching
 - 🚀 **High Performance**: Concurrent data downloads and vectorized processing for 1M+ data points
 - 📱 **Responsive Design**: Professional UI optimized for desktop and mobile
@@ -85,8 +87,10 @@ The dashboard processes CSV files from monitor-io devices with:
 - **Data Validation**: Input validation and error handling for malformed data
 - **Smart Filtering**: Automatic exclusion of DNS failures and invalid targets
 - **Vectorized Processing**: Pandas-optimized data restructuring
-- **Time Range Filtering**: Efficient filtering for Last 24h, 48h, 7 days, or All Data
+- **Synchronized Time Filtering**: Charts and statistics table both use the same time range filter
+- **Packet Loss Detection**: Automatic identification and highlighting of targets with network issues
 - **DNS Failure Detection**: Separate tracking and visualization of DNS failure events
+- **Statistical Analysis**: Real-time calculation of min, max, average metrics per target
 
 ## User Interface
 
@@ -100,14 +104,21 @@ The dashboard processes CSV files from monitor-io devices with:
 - **Dropdown Interface**: Easy selection from predefined time ranges
 - **Available Options**: Last 24 hours, Last 48 hours, Last 7 days, All Data
 - **Smart Filtering**: Efficient data filtering based on selected time range
-- **Consistent Visualization**: Charts automatically adjust to show selected time period
+- **Synchronized Views**: Charts and statistics table both filter to the same time period
 
 ### Chart Features
 - **Dual-Panel Layout**: Performance metrics on top, DNS failures on bottom
 - **Multiple Metrics**: Switch between Average, Min, Max ping times and Packet Loss
 - **Color-Coded Targets**: Each monitoring target gets a distinct VSCode theme color
+- **Clean Design**: Minimal styling with titles in UI headers, not overlaid on charts
 - **Responsive Design**: Charts adapt to different screen sizes
-- **Professional Styling**: Clean, modern interface matching VSCode aesthetics
+
+### Performance Statistics Table
+- **Intuitive Layout**: Targets displayed as rows, metrics as columns for easy comparison
+- **Comprehensive Metrics**: Shows Average, Min, Max ping times, packet loss, and record counts
+- **Smart Alerts**: Targets with packet loss are highlighted with ⚠️ warning indicators
+- **Time-Synchronized**: Automatically filters data based on selected time range
+- **Full-Width Display**: Optimized layout utilizing full available space
 
 ## Development
 
@@ -153,11 +164,13 @@ python -c "from config import config; print(config)"
 
 ## Performance
 
-- **Concurrent Processing**: 5x faster data loading
-- **Memory Efficient**: Vectorized operations for large datasets
-- **Smart Time Filtering**: Efficient dropdown-based time range selection
+- **Concurrent Processing**: 5x faster data loading with async downloads
+- **Memory Efficient**: Vectorized operations for large datasets (1M+ records)
+- **Smart Time Filtering**: Efficient dropdown-based time range selection with synchronized views
 - **Responsive UI**: Optimized for real-time updates with smooth theme transitions
-- **Chart Optimization**: VSCode-themed charts with efficient rendering
+- **Chart Optimization**: Clean, title-free charts with efficient VSCode-themed rendering
+- **Table Optimization**: Streamlined statistics table with intelligent packet loss highlighting
+- **Reduced Complexity**: Removed redundant data views for better performance and focus
 
 ## License
 

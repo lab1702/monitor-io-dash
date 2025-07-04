@@ -85,18 +85,7 @@ def create_data_tables():
     """Create the data tables section"""
     return ui.row(
         ui.column(
-            6,
-            ui.div(
-                ui.div(
-                    ui.h5("🕒 Recent Measurements", class_="table-title"),
-                    ui.output_table("recent_data_table"),
-                    class_="table-content"
-                ),
-                class_="table-container"
-            )
-        ),
-        ui.column(
-            6,
+            12,
             ui.div(
                 ui.div(
                     ui.h5("📈 Performance Statistics", class_="table-title"),

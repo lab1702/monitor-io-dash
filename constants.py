@@ -54,7 +54,6 @@ TIME_RANGE_INTERVALS = {
 # UI Constants (kept for backward compatibility)
 DEFAULT_SLIDER_MIN = 1
 DEFAULT_SLIDER_MAX = 30
-RECENT_DATA_ROWS = 15
 
 # Data processing constants
 DNS_FAILURE_PREFIX = 'DNS:Failure'
