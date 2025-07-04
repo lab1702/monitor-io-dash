@@ -6,11 +6,13 @@ A professional Python/Shiny web dashboard for monitoring network performance dat
 
 - 🌐 **Real-time Network Monitoring**: Visualize ping times and packet loss across multiple targets
 - 📊 **Multiple Metrics**: Average/Min/Max ping times and packet loss percentages
-- ⏰ **Flexible Time Ranges**: View data from 1-365 days with smart downsampling
+- ⏰ **Flexible Time Ranges**: Dropdown selection for Last 24h, 48h, 7 days, or All Data
+- 🎨 **VSCode Theme**: Authentic VSCode light/dark theme with seamless switching
 - 🚀 **High Performance**: Concurrent data downloads and vectorized processing for 1M+ data points
-- 📱 **Responsive Design**: Professional UI with automatic dark/light mode support
+- 📱 **Responsive Design**: Professional UI optimized for desktop and mobile
 - 🔧 **Configurable**: Environment-based configuration for easy deployment
 - 🐳 **Docker Ready**: Complete containerization with security best practices
+- 📈 **DNS Failure Tracking**: Visual display of DNS failure events alongside performance metrics
 
 ## Quick Start
 
@@ -30,6 +32,7 @@ A professional Python/Shiny web dashboard for monitoring network performance dat
    ```
 
 3. **Access dashboard**: Open http://localhost:8000
+   - Use the theme toggle button (🌙/☀️) in the top-right to switch between light and dark mode
 
 ### Manual Installation
 
@@ -69,10 +72,10 @@ All configuration is managed through environment variables. Copy `.env.example` 
 - **`app.py`**: Main Shiny application with UI and server logic
 - **`data_fetcher.py`**: Async data fetching and processing with error handling
 - **`config.py`**: Centralized configuration management with validation
-- **`constants.py`**: Application constants and configuration values
+- **`constants.py`**: Application constants, time ranges, and VSCode color palettes
 - **`exceptions.py`**: Custom exception classes for better error handling
-- **`ui_components.py`**: Modular UI component definitions
-- **`static/styles.css`**: Professional CSS styling with dark/light mode
+- **`ui_components.py`**: Modular UI component definitions with theme management
+- **`static/styles.css`**: Professional VSCode-style CSS with light/dark themes
 
 ## Data Processing
 
@@ -82,7 +85,29 @@ The dashboard processes CSV files from monitor-io devices with:
 - **Data Validation**: Input validation and error handling for malformed data
 - **Smart Filtering**: Automatic exclusion of DNS failures and invalid targets
 - **Vectorized Processing**: Pandas-optimized data restructuring
-- **Intelligent Downsampling**: Automatic data reduction for smooth chart rendering
+- **Time Range Filtering**: Efficient filtering for Last 24h, 48h, 7 days, or All Data
+- **DNS Failure Detection**: Separate tracking and visualization of DNS failure events
+
+## User Interface
+
+### Theme System
+- **VSCode Authentic Colors**: Professional light and dark themes matching VSCode's color palette
+- **Theme Toggle**: Easy switching with the moon/sun button in the top-right corner
+- **System Preference Detection**: Automatically detects your system's dark mode preference
+- **Theme Persistence**: Remembers your theme choice across sessions
+
+### Time Range Selection
+- **Dropdown Interface**: Easy selection from predefined time ranges
+- **Available Options**: Last 24 hours, Last 48 hours, Last 7 days, All Data
+- **Smart Filtering**: Efficient data filtering based on selected time range
+- **Consistent Visualization**: Charts automatically adjust to show selected time period
+
+### Chart Features
+- **Dual-Panel Layout**: Performance metrics on top, DNS failures on bottom
+- **Multiple Metrics**: Switch between Average, Min, Max ping times and Packet Loss
+- **Color-Coded Targets**: Each monitoring target gets a distinct VSCode theme color
+- **Responsive Design**: Charts adapt to different screen sizes
+- **Professional Styling**: Clean, modern interface matching VSCode aesthetics
 
 ## Development
 
@@ -99,9 +124,11 @@ python -c "from config import config; print(config)"
 ### Adding Features
 
 1. **New Metrics**: Add to `constants.py` METRIC_TYPES
-2. **UI Components**: Extend `ui_components.py`
-3. **Data Processing**: Modify `data_fetcher.py`
-4. **Configuration**: Update `config.py` and `.env.example`
+2. **New Time Ranges**: Update TIME_RANGE_OPTIONS in `constants.py`
+3. **UI Components**: Extend `ui_components.py`
+4. **Theme Colors**: Modify CHART_COLORS_LIGHT/DARK in `constants.py`
+5. **Data Processing**: Modify `data_fetcher.py`
+6. **Configuration**: Update `config.py` and `.env.example`
 
 ## Production Deployment
 
@@ -128,8 +155,9 @@ python -c "from config import config; print(config)"
 
 - **Concurrent Processing**: 5x faster data loading
 - **Memory Efficient**: Vectorized operations for large datasets
-- **Smart Downsampling**: Handles 1M+ data points smoothly
-- **Responsive UI**: Optimized for real-time updates
+- **Smart Time Filtering**: Efficient dropdown-based time range selection
+- **Responsive UI**: Optimized for real-time updates with smooth theme transitions
+- **Chart Optimization**: VSCode-themed charts with efficient rendering
 
 ## License
 

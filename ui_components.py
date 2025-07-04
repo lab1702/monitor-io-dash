@@ -1,10 +1,20 @@
 """UI Components for Monitor IO Dashboard"""
 from shiny import ui
-from constants import METRIC_TYPES, DEFAULT_SLIDER_MIN, DEFAULT_SLIDER_MAX, DEFAULT_TIME_RANGE_DAYS
+from constants import METRIC_TYPES, TIME_RANGE_OPTIONS, DEFAULT_TIME_RANGE_SELECTION
 
 def create_header():
     """Create the dashboard header section"""
     return ui.div(
+        # Theme toggle button
+        ui.div(
+            ui.tags.button(
+                ui.span("🌙", class_="theme-toggle-icon"),
+                ui.span("Dark", id="theme-text"),
+                class_="theme-toggle",
+                id="theme-toggle",
+                onclick="toggleTheme()"
+            )
+        ),
         ui.div(
             ui.h1("🌐 Monitor IO Dashboard", class_="dashboard-title"),
             class_="header-container"
@@ -32,7 +42,12 @@ def create_control_panel():
             ui.column(
                 6,
                 ui.div(
-                    ui.input_slider("time_range", "📅 Days", DEFAULT_SLIDER_MIN, DEFAULT_SLIDER_MAX, DEFAULT_TIME_RANGE_DAYS),
+                    ui.input_selectize(
+                        "time_range",
+                        "📅 Time Range",
+                        choices=list(TIME_RANGE_OPTIONS.keys()),
+                        selected=DEFAULT_TIME_RANGE_SELECTION
+                    ),
                     class_="control-group",
                     style="display: flex; flex-direction: column; align-items: flex-end;"
                 )
@@ -107,12 +122,73 @@ def get_dashboard_styles():
         .dashboard-title { font-size: 2rem; font-weight: bold; text-align: center; }
         """
 
+def get_theme_script():
+    """Get the JavaScript for theme switching"""
+    return """
+    <script>
+    // Theme management
+    function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    
+    function getCurrentTheme() {
+        return localStorage.getItem('theme') || getSystemTheme();
+    }
+    
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        updateThemeButton(theme);
+    }
+    
+    function updateThemeButton(theme) {
+        const button = document.getElementById('theme-toggle');
+        const icon = button.querySelector('.theme-toggle-icon');
+        const text = document.getElementById('theme-text');
+        
+        if (theme === 'dark') {
+            icon.textContent = '☀️';
+            text.textContent = 'Light';
+        } else {
+            icon.textContent = '🌙';
+            text.textContent = 'Dark';
+        }
+    }
+    
+    function toggleTheme() {
+        const currentTheme = getCurrentTheme();
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+    }
+    
+    // Initialize theme on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const theme = getCurrentTheme();
+        setTheme(theme);
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    });
+    
+    // Set initial theme immediately to prevent flash
+    (function() {
+        const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+    })();
+    </script>
+    """
+
 def create_main_layout():
     """Create the main application layout"""
     return ui.page_fluid(
-        # Include CSS styles
+        # Include CSS styles and theme script
         ui.tags.head(
-            ui.tags.style(get_dashboard_styles())
+            ui.tags.style(get_dashboard_styles()),
+            ui.HTML(get_theme_script())
         ),
         
         # Header Section

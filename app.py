@@ -88,32 +88,27 @@ def server(input, output, session):
                 await asyncio.sleep(1)
     
     
-    # Update time range slider based on available data
-    @reactive.Effect
-    def update_time_range_ui():
-        data = ping_data.get()
-        if not data.empty and 'datetime' in data.columns:
-            # Calculate the range of available data
-            min_date = data['datetime'].min()
-            max_date = data['datetime'].max()
-            
-            if pd.notna(min_date) and pd.notna(max_date):
-                # Calculate total days of data available
-                total_days = (max_date - min_date).days + 1
-                
-                # Update slider to allow full range, but cap at reasonable maximum
-                max_range = min(total_days, MAX_TIME_RANGE_DAYS)
-                current_value = min(input.time_range(), max_range)
-                
-                ui.update_slider("time_range", value=current_value, min=DEFAULT_SLIDER_MIN, max=max_range)
-                logger.info(f"Updated time range slider: {total_days} days available, max set to {max_range}")
-        else:
-            # Default range if no data
-            ui.update_slider("time_range", value=DEFAULT_TIME_RANGE_DAYS, min=DEFAULT_SLIDER_MIN, max=DEFAULT_SLIDER_MAX)
+    # Helper function to get time range in days from dropdown selection
+    def get_time_range_days():
+        try:
+            selection = input.time_range()
+            logger.info(f"Time range selection: '{selection}'")
+            if selection in TIME_RANGE_OPTIONS:
+                days = TIME_RANGE_OPTIONS[selection]
+                logger.info(f"Mapped to {days} days")
+                if days is None:  # "All Data" option
+                    return None
+                return days
+            logger.warning(f"Unknown selection '{selection}', using default")
+            return 1  # Default fallback
+        except Exception as e:
+            logger.error(f"Error getting time range: {e}")
+            return 1
     
     @output
     @render.plot
     def metric_plot():
+        logger.info("=== METRIC PLOT FUNCTION CALLED ===")
         data = ping_data.get()
         dns_data = dns_failure_data.get()
         
@@ -122,26 +117,27 @@ def server(input, output, session):
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True, 
                                        gridspec_kw={'height_ratios': [3, 1], 'hspace': 0.1},
                                        constrained_layout=False)
+        
+        # Configure for transparent background to work with CSS themes
         fig.patch.set_facecolor('none')
         ax1.set_facecolor('none')
         ax2.set_facecolor('none')
         
-        # Configure colors for dark mode compatibility
-        text_color = '#f1f5f9'  # Light text for dark backgrounds
-        muted_color = '#94a3b8'  # Muted light text
-        border_color = '#334155'  # Dark border color
+        # VSCode theme colors for charts
+        text_color = '#cccccc'  # VSCode dark text
+        muted_color = '#969696'  # VSCode muted text
+        border_color = '#464647'  # VSCode border
         
         # Get time range for consistent filtering
-        try:
-            time_range_days = input.time_range()
-            if not isinstance(time_range_days, (int, float)) or time_range_days <= 0:
-                time_range_days = 1
-            cutoff_time = datetime.now() - timedelta(days=time_range_days)
-            current_time = datetime.now()
-        except:
-            time_range_days = 1
-            cutoff_time = datetime.now() - timedelta(days=1)
-            current_time = datetime.now()
+        logger.info("=== STARTING TIME RANGE CALCULATION ===")
+        time_range_days = get_time_range_days()
+        current_time = datetime.now()
+        logger.info(f"Calculated time_range_days: {time_range_days}, current_time: {current_time}")
+        
+        if time_range_days is None:  # "All Data" option
+            cutoff_time = None
+        else:
+            cutoff_time = current_time - timedelta(days=time_range_days)
         
         # === TOP SUBPLOT: Performance Metrics ===
         if data.empty or 'datetime' not in data.columns:
@@ -153,17 +149,26 @@ def server(input, output, session):
             try:
                 if not pd.api.types.is_datetime64_any_dtype(data['datetime']):
                     data['datetime'] = pd.to_datetime(data['datetime'])
-                filtered_data = data[data['datetime'] >= cutoff_time].copy()
-            except:
+                    
+                if cutoff_time is None:  # "All Data" option
+                    filtered_data = data.copy()
+                    logger.info(f"No filtering - showing all {len(filtered_data)} records")
+                else:
+                    filtered_data = data[data['datetime'] >= cutoff_time].copy()
+                    logger.info(f"Filtered data: {len(data)} -> {len(filtered_data)} records "
+                               f"(cutoff: {cutoff_time}, latest: {data['datetime'].max()}, "
+                               f"oldest: {data['datetime'].min()})")
+            except Exception as e:
                 filtered_data = data.copy()
+                logger.error(f"Error filtering data: {e}")
             
             if filtered_data.empty:
                 ax1.text(0.5, 0.5, 'No performance data in selected time range',
                         ha='center', va='center', transform=ax1.transAxes, fontsize=12, color=muted_color)
                 ax1.set_title("Network Performance Metrics", fontweight='bold', fontsize=14, color=text_color)
             else:
-                # Use color palette from constants
-                colors = CHART_COLORS
+                # Use VSCode dark theme color palette for charts
+                colors = CHART_COLORS_DARK
                 targets = filtered_data['target'].unique()
                 metric_type = input.metric_type()
                 
@@ -207,7 +212,11 @@ def server(input, output, session):
                 if 'datetime' in dns_data.columns:
                     if not pd.api.types.is_datetime64_any_dtype(dns_data['datetime']):
                         dns_data['datetime'] = pd.to_datetime(dns_data['datetime'])
-                    filtered_dns_data = dns_data[dns_data['datetime'] >= cutoff_time].copy()
+                    
+                    if cutoff_time is None:  # "All Data" option
+                        filtered_dns_data = dns_data.copy()
+                    else:
+                        filtered_dns_data = dns_data[dns_data['datetime'] >= cutoff_time].copy()
                 else:
                     filtered_dns_data = dns_data.copy()
             except:
@@ -222,7 +231,7 @@ def server(input, output, session):
             else:
                 # Plot DNS failures as vertical lines
                 target_numbers = filtered_dns_data['target_number'].unique()
-                colors = CHART_COLORS
+                colors = CHART_COLORS_DARK
                 
                 # Set up Y-axis range for vertical lines
                 ax2.set_ylim(-0.5, 0.5)
@@ -253,16 +262,21 @@ def server(input, output, session):
         
         # === SHARED X-AXIS FORMATTING ===
         # Set explicit X-axis range for both subplots
-        ax1.set_xlim(cutoff_time, current_time)
-        ax2.set_xlim(cutoff_time, current_time)
+        if cutoff_time is not None:
+            ax1.set_xlim(cutoff_time, current_time)
+            ax2.set_xlim(cutoff_time, current_time)
         
         # Format time axis (only on bottom subplot since sharex=True)
-        interval_key = 1  # default
-        for key in sorted(TIME_RANGE_INTERVALS.keys()):
-            if time_range_days <= key:
-                interval_key = key
-                break
+        if time_range_days is not None:
+            interval_key = 1  # default
+            for key in sorted(TIME_RANGE_INTERVALS.keys()):
+                if time_range_days <= key:
+                    interval_key = key
+                    break
+            else:
+                interval_key = max(TIME_RANGE_INTERVALS.keys())
         else:
+            # For "All Data", use the largest interval
             interval_key = max(TIME_RANGE_INTERVALS.keys())
         
         interval_config = TIME_RANGE_INTERVALS[interval_key]

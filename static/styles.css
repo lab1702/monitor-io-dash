@@ -1,196 +1,376 @@
-/* Monitor IO Dashboard Styles */
+/* Monitor IO Dashboard - VSCode Style Theme */
 
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --success-color: #059669;
-    --warning-color: #d97706;
-    --danger-color: #dc2626;
-    --light-bg: #ffffff;
-    --light-surface: #f8fafc;
-    --light-border: #e2e8f0;
-    --light-text: #1e293b;
-    --light-text-muted: #64748b;
-    --dark-bg: #0f172a;
-    --dark-surface: #1e293b;
-    --dark-border: #334155;
-    --dark-text: #f1f5f9;
-    --dark-text-muted: #94a3b8;
+    /* VSCode Light Theme Colors */
+    --vscode-light-bg: #ffffff;
+    --vscode-light-sidebar: #f3f3f3;
+    --vscode-light-surface: #ffffff;
+    --vscode-light-surface-alt: #f8f8f8;
+    --vscode-light-border: #e0e0e0;
+    --vscode-light-border-light: #f0f0f0;
+    --vscode-light-text: #383a42;
+    --vscode-light-text-muted: #696c77;
+    --vscode-light-text-subtle: #a0a1a7;
+    --vscode-light-primary: #005fb8;
+    --vscode-light-primary-hover: #004494;
+    --vscode-light-success: #16825d;
+    --vscode-light-warning: #b75502;
+    --vscode-light-danger: #d73a49;
+    --vscode-light-info: #0969da;
+    --vscode-light-shadow: rgba(0, 0, 0, 0.1);
+    --vscode-light-shadow-strong: rgba(0, 0, 0, 0.15);
+
+    /* VSCode Dark Theme Colors */
+    --vscode-dark-bg: #1e1e1e;
+    --vscode-dark-sidebar: #252526;
+    --vscode-dark-surface: #2d2d30;
+    --vscode-dark-surface-alt: #3e3e42;
+    --vscode-dark-border: #464647;
+    --vscode-dark-border-light: #3e3e42;
+    --vscode-dark-text: #cccccc;
+    --vscode-dark-text-muted: #969696;
+    --vscode-dark-text-subtle: #6a6a6a;
+    --vscode-dark-primary: #007acc;
+    --vscode-dark-primary-hover: #1177bb;
+    --vscode-dark-success: #4ec9b0;
+    --vscode-dark-warning: #ffcc02;
+    --vscode-dark-danger: #f44747;
+    --vscode-dark-info: #75beff;
+    --vscode-dark-shadow: rgba(0, 0, 0, 0.4);
+    --vscode-dark-shadow-strong: rgba(0, 0, 0, 0.6);
 }
 
-/* Light Mode Styles */
-@media (prefers-color-scheme: light) {
-    body {
-        background-color: var(--light-bg);
-        color: var(--light-text);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    .dashboard-card {
-        background: var(--light-surface);
-        border: 1px solid var(--light-border);
-        color: var(--light-text);
-    }
-    .control-panel {
-        background: var(--light-surface);
-        border: 1px solid var(--light-border);
-    }
-    .stats-card {
-        background: var(--light-bg);
-        border: 1px solid var(--light-border);
-    }
-    .table {
-        color: var(--light-text) !important;
-        background-color: var(--light-surface) !important;
-    }
-    .table th {
-        border-color: var(--light-border) !important;
-        background-color: var(--light-bg) !important;
-        color: var(--light-text) !important;
-        font-weight: 600;
-    }
-    .table td {
-        border-color: var(--light-border) !important;
-        background-color: var(--light-surface) !important;
-        color: var(--light-text) !important;
-    }
-    .table-striped > tbody > tr:nth-of-type(odd) > td {
-        background-color: rgba(100, 116, 139, 0.05) !important;
-    }
-    .table-hover > tbody > tr:hover > td {
-        background-color: rgba(100, 116, 139, 0.1) !important;
-    }
-    .loading-container {
-        background: linear-gradient(135deg, #dbeafe, #eff6ff);
-        border-left: 4px solid var(--primary-color);
-    }
+/* Theme variables - default to light */
+[data-theme="light"], :root {
+    --bg-color: var(--vscode-light-bg);
+    --sidebar-color: var(--vscode-light-sidebar);
+    --surface-color: var(--vscode-light-surface);
+    --surface-alt-color: var(--vscode-light-surface-alt);
+    --border-color: var(--vscode-light-border);
+    --border-light-color: var(--vscode-light-border-light);
+    --text-color: var(--vscode-light-text);
+    --text-muted-color: var(--vscode-light-text-muted);
+    --text-subtle-color: var(--vscode-light-text-subtle);
+    --primary-color: var(--vscode-light-primary);
+    --primary-hover-color: var(--vscode-light-primary-hover);
+    --success-color: var(--vscode-light-success);
+    --warning-color: var(--vscode-light-warning);
+    --danger-color: var(--vscode-light-danger);
+    --info-color: var(--vscode-light-info);
+    --shadow-color: var(--vscode-light-shadow);
+    --shadow-strong-color: var(--vscode-light-shadow-strong);
 }
 
-/* Dark Mode Styles */
+[data-theme="dark"] {
+    --bg-color: var(--vscode-dark-bg);
+    --sidebar-color: var(--vscode-dark-sidebar);
+    --surface-color: var(--vscode-dark-surface);
+    --surface-alt-color: var(--vscode-dark-surface-alt);
+    --border-color: var(--vscode-dark-border);
+    --border-light-color: var(--vscode-dark-border-light);
+    --text-color: var(--vscode-dark-text);
+    --text-muted-color: var(--vscode-dark-text-muted);
+    --text-subtle-color: var(--vscode-dark-text-subtle);
+    --primary-color: var(--vscode-dark-primary);
+    --primary-hover-color: var(--vscode-dark-primary-hover);
+    --success-color: var(--vscode-dark-success);
+    --warning-color: var(--vscode-dark-warning);
+    --danger-color: var(--vscode-dark-danger);
+    --info-color: var(--vscode-dark-info);
+    --shadow-color: var(--vscode-dark-shadow);
+    --shadow-strong-color: var(--vscode-dark-shadow-strong);
+}
+
+/* Auto-detect system preference fallback */
 @media (prefers-color-scheme: dark) {
-    body {
-        background-color: var(--dark-bg);
-        color: var(--dark-text);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    .dashboard-card {
-        background: var(--dark-surface);
-        border: 1px solid var(--dark-border);
-        color: var(--dark-text);
-    }
-    .control-panel {
-        background: var(--dark-surface);
-        border: 1px solid var(--dark-border);
-    }
-    .stats-card {
-        background: var(--dark-bg);
-        border: 1px solid var(--dark-border);
-    }
-    .form-control, .form-select {
-        background-color: var(--dark-surface);
-        border-color: var(--dark-border);
-        color: var(--dark-text);
-    }
-    .form-control:focus, .form-select:focus {
-        background-color: var(--dark-surface);
-        border-color: var(--primary-color);
-        color: var(--dark-text);
-        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
-    }
-    .table {
-        color: var(--dark-text) !important;
-        background-color: var(--dark-surface) !important;
-    }
-    .table th {
-        border-color: var(--dark-border) !important;
-        background-color: var(--dark-bg) !important;
-        color: var(--dark-text) !important;
-        font-weight: 600;
-    }
-    .table td {
-        border-color: var(--dark-border) !important;
-        background-color: var(--dark-surface) !important;
-        color: var(--dark-text) !important;
-    }
-    .table-striped > tbody > tr:nth-of-type(odd) > td {
-        background-color: rgba(148, 163, 184, 0.1) !important;
-    }
-    .table-hover > tbody > tr:hover > td {
-        background-color: rgba(148, 163, 184, 0.2) !important;
-    }
-    .loading-container {
-        background: linear-gradient(135deg, #1e3a8a, #1e40af);
-        border-left: 4px solid var(--primary-color);
-    }
-    .form-control, .form-select {
-        border-color: var(--dark-border);
+    :root:not([data-theme]) {
+        --bg-color: var(--vscode-dark-bg);
+        --sidebar-color: var(--vscode-dark-sidebar);
+        --surface-color: var(--vscode-dark-surface);
+        --surface-alt-color: var(--vscode-dark-surface-alt);
+        --border-color: var(--vscode-dark-border);
+        --border-light-color: var(--vscode-dark-border-light);
+        --text-color: var(--vscode-dark-text);
+        --text-muted-color: var(--vscode-dark-text-muted);
+        --text-subtle-color: var(--vscode-dark-text-subtle);
+        --primary-color: var(--vscode-dark-primary);
+        --primary-hover-color: var(--vscode-dark-primary-hover);
+        --success-color: var(--vscode-dark-success);
+        --warning-color: var(--vscode-dark-warning);
+        --danger-color: var(--vscode-dark-danger);
+        --info-color: var(--vscode-dark-info);
+        --shadow-color: var(--vscode-dark-shadow);
+        --shadow-strong-color: var(--vscode-dark-shadow-strong);
     }
 }
 
-/* Common Styles */
-.dashboard-title {
-    font-size: 2.25rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--success-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* Base styles */
+* {
+    box-sizing: border-box;
 }
 
-.section-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 6px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.theme-toggle:hover {
+    background: var(--surface-alt-color);
+    border-color: var(--primary-color);
+}
+
+.theme-toggle-icon {
+    font-size: 14px;
+}
+
+/* Dashboard Header */
+.dashboard-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 24px 0;
+    color: var(--text-color);
+    text-align: center;
+    letter-spacing: -0.01em;
+}
+
+.header-container {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-light-color);
+}
+
+/* Main Layout */
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px 32px 16px;
+}
+
+/* Control Panel */
+.control-panel {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.control-group {
+    margin-bottom: 12px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Form Controls */
+.form-label, label {
+    display: block;
+    font-weight: 500;
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: var(--text-muted-color);
+}
+
+.form-control, .form-select, select, input {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+    padding: 6px 8px;
+    font-size: 13px;
+    color: var(--text-color);
+    width: 100%;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.form-control:focus, .form-select:focus, select:focus, input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.form-control:hover, .form-select:hover, select:hover, input:hover {
+    border-color: var(--text-muted-color);
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 14px;
+    border-radius: 2px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.btn:hover {
+    background: var(--surface-alt-color);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    background: var(--primary-hover-color);
+    border-color: var(--primary-hover-color);
 }
 
-.form-label {
+/* Status Display */
+.status-container {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light-color);
+}
+
+.status-display {
+    font-size: 11px;
+    color: var(--text-subtle-color);
+    margin-top: 4px;
+}
+
+/* Chart Container */
+.chart-container {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.chart-content {
+    margin-top: 12px;
+}
+
+.chart-title {
+    font-size: 14px;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
+    margin: 0 0 12px 0;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Data Tables */
+.table-container {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow-color);
+    height: 100%;
+}
+
+.table-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.table-content {
+    overflow-x: auto;
+}
+
+/* Tables */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    color: var(--text-color) !important;
+    background-color: transparent !important;
+}
+
+.table th {
+    background-color: var(--surface-alt-color) !important;
+    border: 1px solid var(--border-color) !important;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-muted-color) !important;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 1px solid var(--light-border);
-    padding: 12px 16px;
-    transition: all 0.2s ease;
+.table td {
+    background-color: var(--surface-color) !important;
+    border: 1px solid var(--border-light-color) !important;
+    padding: 8px 12px;
+    color: var(--text-color) !important;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background-color: var(--surface-alt-color) !important;
+}
+
+.table-hover > tbody > tr:hover > td {
+    background-color: var(--border-light-color) !important;
+}
+
+/* Loading States */
 .loading-container {
-    border-radius: 8px;
-    padding: 16px;
-    margin: 16px 0;
+    background: var(--surface-alt-color);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 12px 0;
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted-color);
 }
 
 .spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(37, 99, 235, 0.2);
-    border-top: 3px solid var(--primary-color);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -200,144 +380,76 @@
     100% { transform: rotate(360deg); }
 }
 
-.header-container {
-    text-align: center;
-    margin-bottom: 2rem;
+/* VSCode-style scrollbars */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
 }
 
-.main-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 1rem;
+::-webkit-scrollbar-track {
+    background: var(--surface-color);
 }
 
-.control-panel {
-    background: var(--light-surface);
-    border: 1px solid var(--light-border);
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
 }
 
-@media (prefers-color-scheme: dark) {
-    .control-panel {
-        background: var(--dark-surface);
-        border-color: var(--dark-border);
-    }
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-subtle-color);
 }
 
-.control-group {
-    margin-bottom: 1rem;
-}
-
-.control-label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.8;
-}
-
-.status-container {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--light-border);
-}
-
-@media (prefers-color-scheme: dark) {
-    .status-container {
-        border-top-color: var(--dark-border);
-    }
-}
-
-.status-display {
-    font-size: 0.875rem;
-    font-weight: 500;
-    opacity: 0.8;
-    margin-top: 0.5rem;
-}
-
-.chart-container {
-    background: var(--light-surface);
-    border: 1px solid var(--light-border);
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-    .chart-container {
-        background: var(--dark-surface);
-        border-color: var(--dark-border);
-    }
-}
-
-.chart-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: var(--light-text);
-}
-
-@media (prefers-color-scheme: dark) {
-    .chart-title {
-        color: var(--dark-text);
-    }
-}
-
-.table-container {
-    background: var(--light-surface);
-    border: 1px solid var(--light-border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-    height: 100%;
-}
-
-@media (prefers-color-scheme: dark) {
-    .table-container {
-        background: var(--dark-surface);
-        border-color: var(--dark-border);
-    }
-}
-
-.table-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--light-text);
-}
-
-@media (prefers-color-scheme: dark) {
-    .table-title {
-        color: var(--dark-text);
-    }
-}
-
-.table-content {
-    overflow-x: auto;
-}
-
-/* Responsive adjustments */
+/* Responsive Design */
 @media (max-width: 768px) {
     .main-container {
-        padding: 0 0.5rem;
+        padding: 0 8px 16px 8px;
     }
     
-    .control-panel {
-        padding: 1rem;
-    }
-    
-    .chart-container {
-        padding: 1rem;
-    }
-    
+    .control-panel,
+    .chart-container,
     .table-container {
-        padding: 1rem;
+        padding: 12px;
+        margin-bottom: 12px;
     }
+    
+    .dashboard-title {
+        font-size: 20px;
+    }
+    
+    .theme-toggle {
+        top: 12px;
+        right: 12px;
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+}
+
+/* Utility Classes */
+.text-muted {
+    color: var(--text-muted-color) !important;
+}
+
+.text-subtle {
+    color: var(--text-subtle-color) !important;
+}
+
+.border-bottom {
+    border-bottom: 1px solid var(--border-light-color);
+}
+
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 4px !important; }
+.mb-2 { margin-bottom: 8px !important; }
+.mb-3 { margin-bottom: 12px !important; }
+.mb-4 { margin-bottom: 16px !important; }
+
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 4px !important; }
+.p-2 { padding: 8px !important; }
+.p-3 { padding: 12px !important; }
+.p-4 { padding: 16px !important; }
+
+/* Animation for theme transitions */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
